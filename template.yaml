@@ -1,0 +1,66 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Check stock for items at a URL.
+
+Globals:
+  Function:
+    Timeout: 120
+
+Resources:
+  StockCheckSNSTopic:
+    Type: "AWS::SNS::Topic"
+    Properties:
+      DisplayName: "Stock Checker Notifications"
+      TopicName: "StockCheck"
+
+  StockCheckFn:
+    Type: AWS::Serverless::Function
+    Properties:
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      CodeUri: ./
+      Handler: src.stock_check.lambda_function.lambda_handler
+      Runtime: python3.12
+      Policies:
+        - SNSPublishMessagePolicy:
+            TopicName: !GetAtt StockCheckSNSTopic.TopicName
+      Environment:
+        Variables:
+          SNS_TOPIC_ARN: !Ref StockCheckSNSTopic
+      Events:
+        Event1:
+          Type: ScheduleV2
+          Properties:
+            Name: StockCheck1
+            Description: Event that triggers the lambda every 6 hours
+            ScheduleExpression: rate(6 hours)
+            State: ENABLED
+            Input: |
+              {"url": "https://httpbin.org/html",
+               "headers": {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/138.0.1"},
+               "match": "Availing himself of the mild",
+               "match_description": "A known match"}
+        Event2:
+          Type: ScheduleV2
+          Properties:
+            Name: StockCheck2
+            Description: Event that triggers the lambda every 6 hours
+            ScheduleExpression: rate(6 hours)
+            State: ENABLED
+            Input: |
+              {"url": "https://httpbin.org/html",
+               "headers": {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/138.0.1"},
+               "match": "Are you suggesting coconuts migrate?",
+               "match_description": "An excellent movie"}
+
+Outputs:
+  StockCheckFn:
+    Description: "Function ARN"
+    Value: !GetAtt StockCheckFn.Arn
+  StockCheckFnIamRole:
+    Description: "IAM Role auto created for the Lambda Function"
+    Value: !GetAtt StockCheckFnRole.Arn
+  StockCheckSNSTopic:
+    Description: "SNS Topic ARN"
+    Value: !Ref StockCheckSNSTopic

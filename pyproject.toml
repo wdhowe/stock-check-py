@@ -1,0 +1,34 @@
+[project]
+name = "stock-check"
+version = "0.1.0"
+description = "Check the stock of products on a site."
+authors = [
+    { name = "Bill Howe" }
+]
+dependencies = [
+    "cytoolz>=1.0.1",
+    "requests>=2.32.3",
+    "boto3>=1.38.13",
+]
+readme = "README.md"
+requires-python = ">= 3.8"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+virtual = true
+dev-dependencies = []
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/stock_check"]
+
+[tool.rye.scripts]
+sync = "rye sync"
+requirements = "sam build --manifest requirements.lock"
+sam-build = {chain=["sync", "requirements"]}
