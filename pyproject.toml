@@ -20,7 +20,9 @@ build-backend = "hatchling.build"
 [tool.rye]
 managed = true
 virtual = true
-dev-dependencies = []
+dev-dependencies = [
+    "pip>=25.1.1",
+]
 
 [tool.hatch.metadata]
 allow-direct-references = true
