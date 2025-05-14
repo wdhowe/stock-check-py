@@ -54,6 +54,46 @@ Resources:
                "match": "Are you suggesting coconuts migrate?",
                "match_description": "An excellent movie"}
 
+  StockCheckFnLogGroup:
+    Type: AWS::Logs::LogGroup
+    DependsOn: StockCheckFn
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${StockCheckFn}
+      RetentionInDays: 90
+
+  StockCheckFnLogMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    DependsOn: StockCheckFnLogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${StockCheckFn}
+      FilterName: !Sub ${StockCheckFn}-error-filter
+      FilterPattern: "?ERROR ?error ?Error ?FAIL ?fail Fail"
+      MetricTransformations:
+        - MetricName: !Sub ${StockCheckFn}-error
+          MetricNamespace: !Sub "/aws/lambda/${StockCheckFn}"
+          DefaultValue: 0
+          MetricValue: "1"
+          Unit: Count
+
+  StockCheckFnCloudWatchAlarm:
+    Type: AWS::CloudWatch::Alarm
+    DependsOn: StockCheckFnLogMetricFilter
+    Properties:
+      AlarmName: !Sub ${StockCheckFn}-alarm
+      AlarmDescription: "Alarm when 'error' or 'fail' appears in cloudwatch logs."
+      Namespace: !Sub "/aws/lambda/${StockCheckFn}"
+      MetricName: !Sub ${StockCheckFn}-error
+      Statistic: Sum
+      Period: 43200 # seconds = 12 hours
+      EvaluationPeriods: 1
+      Threshold: 2
+      TreatMissingData: missing
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      AlarmActions:
+        - !Ref StockCheckSNSTopic
+      OKActions:
+        - !Ref StockCheckSNSTopic
+
 Outputs:
   StockCheckFn:
     Description: "Function ARN"
