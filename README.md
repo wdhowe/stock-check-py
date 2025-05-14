@@ -19,7 +19,7 @@
 
 ### Build
 
-Sync rye and run sam build with rye's requirements.lock. (By default, sam will lock for requirements.txt, unless told otherwise via the `--manifest` flag.)
+Sync rye and run sam build with rye's requirements.lock. (By default, sam will look for requirements.txt, unless told otherwise via the `--manifest` flag.)
 
 ```bash
 rye run sam-build
